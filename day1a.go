@@ -12,6 +12,32 @@ import (
 	"time"
 )
 
+func day2a() {
+	start := time.Now()
+	places := getPlaces()
+
+	placeMap := make(map[float64]int)
+
+	for _, aID := range places.AID {
+		for _, bID := range places.BID {
+			if aID == bID {
+				placeMap[aID] += 1
+			}
+		}
+	}
+
+	total := 0
+	for key, value := range placeMap {
+		total += int(key) * value
+	}
+
+	fmt.Printf(
+		"Day 1, problem B took: %v\nTotal: %d",
+		time.Since(start),
+		total,
+	)
+}
+
 func day1a() {
 	start := time.Now()
 	places := getPlaces()

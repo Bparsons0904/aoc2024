@@ -7,4 +7,5 @@ import (
 func main() {
 	log.Println("Hello AoC")
 	day1a()
+	day2a()
 }

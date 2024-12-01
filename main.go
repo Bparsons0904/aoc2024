@@ -1,11 +1,16 @@
 package main
 
 import (
+	"aoc/utils"
 	"log"
 )
 
 func main() {
 	log.Println("Hello AoC")
-	day1a()
-	day2a()
+	timer := utils.StartTimer("Aoc")
+
+	day1()
+	timer.LogTime("Day 1")
+
+	timer.LogTotalTime()
 }

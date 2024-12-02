@@ -12,5 +12,8 @@ func main() {
 	day1()
 	timer.LogTime("Day 1")
 
+	day2()
+	timer.LogTime("Day 2")
+
 	timer.LogTotalTime()
 }

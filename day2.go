@@ -9,9 +9,9 @@ import (
 )
 
 type Report struct {
-	Data   [][]int
-	Safe   int
-	UnSafe int
+	Data         [][]int
+	Safe         int
+	DampenedSafe int
 }
 
 func day2() {
@@ -19,46 +19,53 @@ func day2() {
 	getData(&report)
 
 	calculateReportSafety(&report)
-	log.Println("Safe Reports", report.Safe)
+	log.Printf("\nSafe Reports: %d\nSafe w/ Dampened: %d", report.Safe, report.DampenedSafe)
 }
 
 func calculateReportSafety(report *Report) {
 	for _, row := range report.Data {
 		test := row[1] - row[0]
 		switch {
-		case test == 0:
-			report.UnSafe++
 		case test > 0:
-			calculateIncreasingReport(report, row)
+			if testIncreasing(row) {
+				report.Safe++
+				report.DampenedSafe++
+			} else {
+				calculateReportWithDampener(report, row)
+			}
+		case test <= 0:
+			if testDecreasing(row) {
+				report.Safe++
+				report.DampenedSafe++
+			} else {
+				calculateReportWithDampener(report, row)
+			}
+		}
+	}
+}
+
+func calculateReportWithDampener(report *Report, row []int) {
+	for i := 0; i < len(row); i++ {
+		rowCopy := make([]int, len(row))
+		copy(rowCopy, row)
+		updatedRow := append(rowCopy[:i], rowCopy[i+1:]...)
+		test := updatedRow[1] - updatedRow[0]
+		if ((updatedRow[0]-updatedRow[len(updatedRow)-1])*1)/len(updatedRow) > 3 {
+			break
+		}
+		switch {
+		case test > 0:
+			if testIncreasing(updatedRow) {
+				report.DampenedSafe++
+				return
+			}
 		case test < 0:
-			calculateDecreasingReport(report, row)
+			if testDecreasing(updatedRow) {
+				report.DampenedSafe++
+				return
+			}
 		}
 	}
-}
-
-func calculateIncreasingReport(report *Report, row []int) {
-	log.Println("Increasing test", row)
-	for i := 0; i < len(row)-1; i++ {
-		difference := row[i+1] - row[i]
-		if difference <= 0 || difference > 3 {
-			report.UnSafe++
-			return
-		}
-	}
-
-	report.Safe++
-}
-
-func calculateDecreasingReport(report *Report, row []int) {
-	for i := 0; i < len(row)-1; i++ {
-		difference := row[i] - row[i+1]
-		if difference <= 0 || difference > 3 {
-			report.UnSafe++
-			return
-		}
-	}
-
-	report.Safe++
 }
 
 func getData(report *Report) {
@@ -83,4 +90,26 @@ func getData(report *Report) {
 
 		report.Data = append(report.Data, intRow)
 	}
+}
+
+func testIncreasing(row []int) bool {
+	for i := 0; i < len(row)-1; i++ {
+		difference := row[i+1] - row[i]
+		if difference <= 0 || difference > 3 {
+			return false
+		}
+	}
+
+	return true
+}
+
+func testDecreasing(row []int) bool {
+	for i := 0; i < len(row)-1; i++ {
+		difference := row[i] - row[i+1]
+		if difference <= 0 || difference > 3 {
+			return false
+		}
+	}
+
+	return true
 }

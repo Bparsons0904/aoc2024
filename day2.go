@@ -50,9 +50,6 @@ func calculateReportWithDampener(report *Report, row []int) {
 		copy(rowCopy, row)
 		updatedRow := append(rowCopy[:i], rowCopy[i+1:]...)
 		test := updatedRow[1] - updatedRow[0]
-		if ((updatedRow[0]-updatedRow[len(updatedRow)-1])*1)/len(updatedRow) > 3 {
-			break
-		}
 		switch {
 		case test > 0:
 			if testIncreasing(updatedRow) {
@@ -93,6 +90,9 @@ func getData(report *Report) {
 }
 
 func testIncreasing(row []int) bool {
+	if ((row[0]-row[len(row)-1])*1)/len(row) > 3 {
+		return false
+	}
 	for i := 0; i < len(row)-1; i++ {
 		difference := row[i+1] - row[i]
 		if difference <= 0 || difference > 3 {
@@ -104,6 +104,9 @@ func testIncreasing(row []int) bool {
 }
 
 func testDecreasing(row []int) bool {
+	if ((row[0]-row[len(row)-1])*1)/len(row) > 3 {
+		return false
+	}
 	for i := 0; i < len(row)-1; i++ {
 		difference := row[i] - row[i+1]
 		if difference <= 0 || difference > 3 {

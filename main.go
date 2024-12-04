@@ -11,24 +11,30 @@ func main() {
 	timer := utils.StartTimer("Aoc")
 
 	var wg sync.WaitGroup
-	wg.Add(3)
+	wg.Add(1)
+
+	// go func() {
+	// 	defer wg.Done()
+	// 	day1()
+	// 	timer.LogTime("Day 1")
+	// }()
+	//
+	// go func() {
+	// 	defer wg.Done()
+	// 	day2()
+	// 	timer.LogTime("Day 2")
+	// }()
+	//
+	// go func() {
+	// 	defer wg.Done()
+	// 	day3()
+	// 	timer.LogTime("Day 3")
+	// }()
 
 	go func() {
 		defer wg.Done()
-		day1()
-		timer.LogTime("Day 1")
-	}()
-
-	go func() {
-		defer wg.Done()
-		day2()
-		timer.LogTime("Day 2")
-	}()
-
-	go func() {
-		defer wg.Done()
-		day3()
-		timer.LogTime("Day 3")
+		day4()
+		timer.LogTime("Day 4")
 	}()
 
 	wg.Wait()

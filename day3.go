@@ -5,18 +5,45 @@ import (
 	"os"
 	"regexp"
 	"strconv"
+	"sync"
+)
+
+var (
+	mulRegex    = regexp.MustCompile(`mul\(\d{1,3},\d{1,3}\)`)
+	mulDoRegex  = regexp.MustCompile(`(?s)don't\(\).*?(?:do\(\)|$)`)
+	numberRegex = regexp.MustCompile(`\d{1,3}`)
 )
 
 func day3() {
-	data, dataExpanded := getDay3Data()
+	data := getDay3Data()
 
-	allValues := processMulCalculations(data)
-	dontValues := processMulCalculations(dataExpanded)
+	var wg sync.WaitGroup
+	var rentalCalulations, rentalValidatedCalculations int
+	var mulDoString string
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		mulString := mulRegex.FindAllStringSubmatch(data, -1)
+		pairData := getAllPairs(mulString)
+		rentalCalulations = processMulCalculations(pairData)
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		mulDoString = mulDoRegex.ReplaceAllLiteralString(data, "")
+		mulDoStringResults := mulRegex.FindAllStringSubmatch(mulDoString, -1)
+		pairData := getAllPairs(mulDoStringResults)
+		rentalValidatedCalculations = processMulCalculations(pairData)
+	}()
+
+	wg.Wait()
 
 	log.Printf(
-		"Total Multiplications: %d\nTotal Don't Values: %d",
-		allValues,
-		dontValues,
+		"Rental Calculations: %d\nValidated Calculations: %d",
+		rentalCalulations,
+		rentalValidatedCalculations,
 	)
 }
 
@@ -29,27 +56,16 @@ func processMulCalculations(data []int) int {
 	return total
 }
 
-func getDay3Data() ([]int, []int) {
+func getDay3Data() string {
 	file, err := os.ReadFile("inputs/input3.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	fileString := string(file)
-	mulRegex := regexp.MustCompile(`mul\(\d{1,3},\d{1,3}\)`)
-	mulString := mulRegex.FindAllStringSubmatch(fileString, -1)
-	result := getAllPairs(mulString)
-
-	mulDoRegex := regexp.MustCompile(`(?s)don't\(\).*?(?:do\(\)|$)`)
-	mulDoString := mulDoRegex.ReplaceAllLiteralString(fileString, "")
-	mulDoStringResults := mulRegex.FindAllStringSubmatch(mulDoString, -1)
-	result2 := getAllPairs(mulDoStringResults)
-
-	return result, result2
+	return string(file)
 }
 
 func getAllPairs(testString [][]string) []int {
-	numberRegex := regexp.MustCompile(`\d{1,3}`)
 	results := []int{}
 	for _, pair := range testString {
 		intRegex := numberRegex.FindAllStringSubmatch(pair[0], -1)

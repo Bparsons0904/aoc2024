@@ -6,11 +6,25 @@ import (
 	"os"
 )
 
+type Direction struct {
+	row, col int
+}
+
 var (
 	X, M, A, S = byte(88), byte(77), byte(65), byte(83)
 	mas        = []byte{M, A, S}
 	xmasFound  = 0
 	x_masFound = 0
+	directions = []Direction{
+		{0, -1},  // Left
+		{0, 1},   // Right
+		{-1, 0},  // Up
+		{1, 0},   // Down
+		{1, 1},   // Down-Right
+		{1, -1},  // Down-Left
+		{-1, -1}, // Up-Left
+		{-1, 1},  // Up-Right
+	}
 )
 
 func day4() {
@@ -21,7 +35,7 @@ func day4() {
 		for j := 0; j < len; j++ {
 			row := data[i]
 			if row[j] == X {
-				checkXMAS(data, row, i, j)
+				checkXMAS(data, i, j)
 			}
 			if row[j] == A {
 				checkX_MAS(data, i, j)
@@ -30,7 +44,7 @@ func day4() {
 	}
 
 	log.Printf(
-		"XMAS Found: %d\nX_MAS Found: %d",
+		"XMAS Found: %d - X_MAS Found: %d",
 		xmasFound,
 		x_masFound,
 	)
@@ -46,126 +60,40 @@ func checkX_MAS(data []string, i, j int) {
 	}
 }
 
-func checkXMAS(data []string, row string, i, j int) {
-	checkLeft(row, j)
-	checkRight(row, j)
-	checkUp(data, i, j)
-	checkDown(data, i, j)
-	checkDownRight(data, i, j)
-	checkDownLeft(data, i, j)
-	checkUpLeft(data, i, j)
-	checkUpRight(data, i, j)
+func checkXMAS(data []string, rowIndex, colIndex int) {
+	rowLen, colLen := len(data), len(data[0])
+	for _, direction := range directions {
+		isValidPattern(data, rowIndex, colIndex, rowLen, colLen, direction)
+	}
 }
 
-func checkUpRight(data []string, i, j int) {
-	if i-3 < 0 || j+4 > len(data[0]) {
-		return
-	}
-
-	for k, char := range mas {
-		if data[i-1-k][j+1+k] != char {
+func isValidPattern(
+	data []string,
+	rowIndex int,
+	colIndex int,
+	rowLen int,
+	colLen int,
+	direction Direction,
+) {
+	for i := range mas {
+		newRow := rowIndex + direction.row*(i+1)
+		newCol := colIndex + direction.col*(i+1)
+		if !isInBounds(newRow, newCol, rowLen, colLen) {
 			return
 		}
-	}
-
-	xmasFound++
-}
-
-func checkUpLeft(data []string, i, j int) {
-	if i-3 < 0 || j-3 < 0 {
-		return
-	}
-
-	for k, char := range mas {
-		if data[i-1-k][j-1-k] != char {
-			return
-		}
-	}
-
-	xmasFound++
-}
-
-func checkDownLeft(data []string, i, j int) {
-	if i+3 >= len(data) || j-3 < 0 {
-		return
-	}
-
-	for k, char := range mas {
-		if data[i+1+k][j-1-k] != char {
-			return
-		}
-	}
-
-	xmasFound++
-}
-
-func checkDownRight(data []string, i, j int) {
-	if i+3 >= len(data) || j+4 > len(data[0]) {
-		return
-	}
-
-	for k, char := range mas {
-		if data[i+1+k][j+1+k] != char {
-			return
-		}
-	}
-
-	xmasFound++
-}
-
-func checkDown(data []string, i, j int) {
-	if i+3 >= len(data) {
-		return
-	}
-
-	for k, char := range mas {
-		if data[i+1+k][j] != char {
-			return
-		}
-	}
-
-	xmasFound++
-}
-
-func checkUp(data []string, i, j int) {
-	if i-3 < 0 {
-		return
-	}
-
-	for k, char := range mas {
-		if data[i-1-k][j] != char {
-			return
-		}
-	}
-
-	xmasFound++
-}
-
-func checkRight(row string, j int) {
-	if j+4 > len(row) {
-		return
-	}
-	for i, char := range mas {
-		if row[j+i+1] != char {
-			return
-		}
-	}
-
-	xmasFound++
-}
-
-func checkLeft(row string, j int) {
-	if j-3 < 0 {
-		return
 	}
 
 	for i, char := range mas {
-		if row[j-i-1] != char {
+		if data[rowIndex+direction.row*(i+1)][colIndex+direction.col*(i+1)] != char {
 			return
 		}
 	}
 
 	xmasFound++
+}
+
+func isInBounds(row, col, rows, cols int) bool {
+	return row >= 0 && row < rows && col >= 0 && col < cols
 }
 
 func getDay4Data() []string {

@@ -9,21 +9,17 @@ import (
 	"strings"
 )
 
-var correctlyOrderedMidTotal = 0
-
 func Day5() {
+	correctedInvalidTotals, correctlyOrderedMidTotal := 0, 0
 	rulesOrderingMap, pageNumbers := getDay5Data()
-	log.Println(rulesOrderingMap, pageNumbers)
 
 PageLoop:
 	for _, page := range pageNumbers {
-		log.Println("Starting page loop", page)
 		for i, number := range page {
-
-			log.Println("Starting number loop", number)
 			if orderingMap, ok := rulesOrderingMap[number]; ok {
-				if !validateOrder(page[:i], orderingMap) {
-					log.Println("We have a invalide ordeer")
+				if valid, _ := validateOrder(page[:i], orderingMap); !valid {
+					correctedOrder := fixInvalidOrders(page, rulesOrderingMap)
+					correctedInvalidTotals += correctedOrder[len(correctedOrder)/2]
 					continue PageLoop
 				}
 			}
@@ -32,18 +28,36 @@ PageLoop:
 		correctlyOrderedMidTotal += page[len(page)/2]
 	}
 
-	log.Printf("Found Validate Ordered Printing Total: %d", correctlyOrderedMidTotal)
+	log.Printf(
+		"Found Validate Ordered Printing Total: %d and Corrected Ordered Total: %d",
+		correctlyOrderedMidTotal,
+		correctedInvalidTotals,
+	)
 }
 
-func validateOrder(remainingNumbers []int, orderingMap []int) bool {
-	// log.Println("validate", remainingNumbers)
-	for _, number := range remainingNumbers {
-		if slices.Contains(orderingMap, number) {
-			return false
+func fixInvalidOrders(invalidPage []int, rulesOrderingMap map[int][]int) []int {
+	for i, number := range invalidPage {
+		if orderingMap, ok := rulesOrderingMap[number]; ok {
+			valid, outOfOrder := validateOrder(invalidPage[:i], orderingMap)
+			if !valid {
+				invalidPage[i], invalidPage[outOfOrder] = invalidPage[outOfOrder], invalidPage[i]
+				return fixInvalidOrders(invalidPage, rulesOrderingMap)
+			}
+
 		}
 	}
 
-	return true
+	return invalidPage
+}
+
+func validateOrder(remainingNumbers []int, orderingMap []int) (bool, int) {
+	for i, number := range remainingNumbers {
+		if slices.Contains(orderingMap, number) {
+			return false, i
+		}
+	}
+
+	return true, 0
 }
 
 func getDay5Data() (map[int][]int, [][]int) {
@@ -66,7 +80,6 @@ func getDay5Data() (map[int][]int, [][]int) {
 
 		addToMap := func(line string) {
 			rules := strings.Split(line, "|")
-			log.Println("rules", rules)
 
 			beforeRule, err := strconv.Atoi(rules[0])
 			if err != nil {
@@ -100,10 +113,7 @@ func getDay5Data() (map[int][]int, [][]int) {
 		} else {
 			addToList(line)
 		}
-
 	}
-
-	log.Println("rule", rulesOrderingMap, printList)
 
 	return rulesOrderingMap, printList
 }

@@ -10,33 +10,51 @@ var (
 	X, M, A, S = byte(88), byte(77), byte(65), byte(83)
 	mas        = []byte{M, A, S}
 	xmasFound  = 0
+	x_masFound = 0
 )
 
 func day4() {
 	data := getDay4Data()
 
 	for i := 0; i < len(data); i++ {
-		// log.Println(data[i])
 		len := len(data[i])
 		for j := 0; j < len; j++ {
 			row := data[i]
 			if row[j] == X {
-				checkLeft(row, j)
-				checkRight(row, j)
-				checkUp(data, i, j)
-				checkDown(data, i, j)
-				checkDownRight(data, i, j)
-				checkDownLeft(data, i, j)
-				checkUpLeft(data, i, j)
-				checkUpRight(data, i, j)
+				checkXMAS(data, row, i, j)
+			}
+			if row[j] == A {
+				checkX_MAS(data, i, j)
 			}
 		}
 	}
 
 	log.Printf(
-		"xmasFound: %d\nValidated Calculations: %d",
-		xmasFound, 0,
+		"XMAS Found: %d\nX_MAS Found: %d",
+		xmasFound,
+		x_masFound,
 	)
+}
+
+func checkX_MAS(data []string, i, j int) {
+	if i-1 < 0 || j+2 > len(data) || i+2 > len(data) || j-1 < 0 {
+		return
+	}
+	if ((data[i-1][j-1] == M && data[i+1][j+1] == S) || (data[i-1][j-1] == S && data[i+1][j+1] == M)) &&
+		((data[i-1][j+1] == M && data[i+1][j-1] == S) || (data[i-1][j+1] == S && data[i+1][j-1] == M)) {
+		x_masFound++
+	}
+}
+
+func checkXMAS(data []string, row string, i, j int) {
+	checkLeft(row, j)
+	checkRight(row, j)
+	checkUp(data, i, j)
+	checkDown(data, i, j)
+	checkDownRight(data, i, j)
+	checkDownLeft(data, i, j)
+	checkUpLeft(data, i, j)
+	checkUpRight(data, i, j)
 }
 
 func checkUpRight(data []string, i, j int) {

@@ -1,4 +1,4 @@
-package main
+package days
 
 import (
 	"bufio"
@@ -27,7 +27,7 @@ var (
 	}
 )
 
-func day4() {
+func Day4() {
 	data := getDay4Data()
 
 	for i := 0; i < len(data); i++ {

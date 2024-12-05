@@ -1,4 +1,4 @@
-package main
+package days
 
 import (
 	"bufio"
@@ -15,7 +15,7 @@ type Places struct {
 	BID []float64
 }
 
-func day1() {
+func Day1() {
 	places := getPlaces()
 	day1a(places)
 	day1b(places)

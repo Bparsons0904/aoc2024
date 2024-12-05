@@ -1,4 +1,4 @@
-package main
+package days
 
 import (
 	"log"
@@ -14,7 +14,7 @@ var (
 	numberRegex = regexp.MustCompile(`\d{1,3}`)
 )
 
-func day3() {
+func Day3() {
 	data := getDay3Data()
 
 	var wg sync.WaitGroup

@@ -1,4 +1,4 @@
-package main
+package days
 
 import (
 	"bufio"
@@ -14,7 +14,7 @@ type Report struct {
 	DampenedSafe int
 }
 
-func day2() {
+func Day2() {
 	var report Report
 	getData(&report)
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"aoc/days"
 	"aoc/utils"
 	"log"
 	"sync"
@@ -12,32 +13,39 @@ func main() {
 
 	var wg sync.WaitGroup
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		day1()
-		timer.LogTime("Day 1")
-	}()
+	// wg.Add(1)
+	// go func() {
+	// 	defer wg.Done()
+	// 	days.Day1()
+	// 	timer.LogTime("Day 1")
+	// }()
+	//
+	// wg.Add(1)
+	// go func() {
+	// 	defer wg.Done()
+	// 	days.Day2()
+	// 	timer.LogTime("Day 2")
+	// }()
+	//
+	// wg.Add(1)
+	// go func() {
+	// 	defer wg.Done()
+	// 	days.Day3()
+	// 	timer.LogTime("Day 3")
+	// }()
+	//
+	// wg.Add(1)
+	// go func() {
+	// 	defer wg.Done()
+	// 	days.Day4()
+	// 	timer.LogTime("Day 4")
+	// }()
 
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		day2()
-		timer.LogTime("Day 2")
-	}()
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		day3()
-		timer.LogTime("Day 3")
-	}()
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		day4()
-		timer.LogTime("Day 4")
+		days.Day5()
+		timer.LogTime("Day 5")
 	}()
 
 	wg.Wait()

@@ -7,7 +7,7 @@ import (
 )
 
 type Direction struct {
-	row, col int
+	Row, Col int
 }
 
 var (
@@ -76,15 +76,15 @@ func isValidPattern(
 	direction Direction,
 ) {
 	for i := range mas {
-		newRow := rowIndex + direction.row*(i+1)
-		newCol := colIndex + direction.col*(i+1)
+		newRow := rowIndex + direction.Row*(i+1)
+		newCol := colIndex + direction.Col*(i+1)
 		if !isInBounds(newRow, newCol, rowLen, colLen) {
 			return
 		}
 	}
 
 	for i, char := range mas {
-		if data[rowIndex+direction.row*(i+1)][colIndex+direction.col*(i+1)] != char {
+		if data[rowIndex+direction.Row*(i+1)][colIndex+direction.Col*(i+1)] != char {
 			return
 		}
 	}

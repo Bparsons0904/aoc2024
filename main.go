@@ -41,11 +41,18 @@ func main() {
 	// 	timer.LogTime("Day 4")
 	// }()
 
+	// wg.Add(1)
+	// go func() {
+	// 	defer wg.Done()
+	// 	days.Day5()
+	// 	timer.LogTime("Day 5")
+	// }()
+
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		days.Day5()
-		timer.LogTime("Day 5")
+		days.Day6()
+		timer.LogTime("Day 6")
 	}()
 
 	wg.Wait()

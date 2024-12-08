@@ -92,8 +92,8 @@ func isValidPattern(
 	xmasFound++
 }
 
-func isInBounds(row, col, rows, cols int) bool {
-	return row >= 0 && row < rows && col >= 0 && col < cols
+func isInBounds(row, col, rowLen, colLen int) bool {
+	return row >= 0 && row < rowLen && col >= 0 && col < colLen
 }
 
 func getDay4Data() []string {

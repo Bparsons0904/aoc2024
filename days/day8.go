@@ -82,18 +82,6 @@ func nodeToCheckExtended(nodeA, nodeB Direction, rowLen, colLen int) []Direction
 	return results
 }
 
-func filterDuplicateDirections(directions []Direction) []Direction {
-	results := []Direction{}
-	for _, direction := range directions {
-		if !slices.ContainsFunc(results, func(dir Direction) bool {
-			return dir.Row == direction.Row && dir.Col == direction.Col
-		}) {
-			results = append(results, direction)
-		}
-	}
-	return results
-}
-
 func nodeToCheck(nodeA, nodeB Direction, rowLen, colLen int) []Direction {
 	dif := Direction{nodeA.Row - nodeB.Row, nodeA.Col - nodeB.Col}
 	toCheck := []Direction{

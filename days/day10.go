@@ -17,8 +17,12 @@ type Trail struct {
 func Day10() {
 	data := getDay10Data()
 	trailHeads := getTrailHeads(data)
-	fullTrailHeads := processTrailheads(data, trailHeads)
-	log.Println(fullTrailHeads)
+	fullTrailHeads, expandedTrailHeads := processTrailheads(data, trailHeads)
+	log.Printf(
+		"Found %d optimal hiking trails. Found %d optimal hiking paths.",
+		fullTrailHeads,
+		expandedTrailHeads,
+	)
 }
 
 func getTrailHeads(data [][]int) []Position {
@@ -34,22 +38,91 @@ func getTrailHeads(data [][]int) []Position {
 	return positions
 }
 
-func processTrailheads(data [][]int, trailHeads []Position) int {
+func processTrailheads(data [][]int, trailHeads []Position) (int, int) {
 	dataPosition := Position{len(data), len(data[0])}
 
-	results := 0
-	// log.Println(trailHeads)
+	results, expandedResults := 0, 0
 	for _, trailHead := range trailHeads {
-		// if i == 0 {
-		// path := []Position{
-		// 	trailHead,
-		// }
-		result := len(checkPaths(trailHead, dataPosition, data, []Position{}))
-		// log.Println("results from ", trailHead, result)
-		results += result
-		// }
+		results += len(checkPaths(trailHead, dataPosition, data, []Position{}))
+		expandedResults += len(
+			checkExpandedPath(trailHead, dataPosition, data, []Position{trailHead}, [][]Position{}),
+		)
 	}
+	return results, expandedResults
+}
+
+func checkExpandedPath(
+	starting Position,
+	dataPosition Position,
+	data [][]int,
+	currentPath []Position,
+	completedPaths [][]Position,
+) [][]Position {
+	newPath := append([]Position{}, currentPath...)
+	newPath = append(newPath, starting)
+
+	pathsInBounds := []Position{}
+	for _, direction := range directions[:4] {
+		newPosition := starting.MoveTo(direction)
+		if checkPositionInBounds(newPosition, dataPosition) {
+			pathsInBounds = append(pathsInBounds, newPosition)
+		}
+	}
+
+	potentialMoves := []Position{}
+	for _, pathToCheck := range pathsInBounds {
+		if data[starting.Row][starting.Col] == 8 &&
+			data[pathToCheck.Row][pathToCheck.Col] == 9 {
+			newCompletedPath := append([]Position{}, newPath...)
+			newCompletedPath = append(newCompletedPath, pathToCheck)
+			completedPaths = append(completedPaths, newCompletedPath)
+		}
+		if data[starting.Row][starting.Col]-data[pathToCheck.Row][pathToCheck.Col] == -1 {
+			if !pathToCheck.Contains(newPath) {
+				potentialMoves = append(potentialMoves, pathToCheck)
+			}
+		}
+	}
+
+	if len(potentialMoves) == 0 {
+		return completedPaths
+	}
+
+	results := completedPaths
+	for _, move := range potentialMoves {
+		foundPaths := checkExpandedPath(move, dataPosition, data, newPath, results)
+		for _, foundPath := range foundPaths {
+			if !containsPath(results, foundPath) {
+				results = append(results, foundPath)
+			}
+		}
+	}
+
 	return results
+}
+
+func containsPath(paths [][]Position, path []Position) bool {
+	if len(path) == 0 {
+		return false
+	}
+
+	for _, existingPath := range paths {
+		if len(existingPath) != len(path) {
+			continue
+		}
+
+		matches := true
+		for i := range path {
+			if !path[i].Equals(existingPath[i]) {
+				matches = false
+				break
+			}
+		}
+		if matches {
+			return true
+		}
+	}
+	return false
 }
 
 func checkPaths(

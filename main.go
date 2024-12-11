@@ -3,78 +3,44 @@ package main
 import (
 	"aoc/days"
 	"aoc/utils"
+	"fmt"
 	"log"
 	"sync"
 )
 
+type DayFunc func()
+
 func main() {
 	log.Println("Hello AoC")
 	timer := utils.StartTimer("Aoc")
+	days := []DayFunc{
+		days.Day1,
+		days.Day2,
+		days.Day3,
+		days.Day4,
+		days.Day5,
+		days.Day6,
+		days.Day7,
+		days.Day8,
+		days.Day9,
+		days.Day10,
+	}
 
 	var wg sync.WaitGroup
 
-	// wg.Add(1)
-	// go func() {
-	// 	defer wg.Done()
-	// 	days.Day1()
-	// 	timer.LogTime("Day 1")
-	// }()
-	//
-	// wg.Add(1)
-	// go func() {
-	// 	defer wg.Done()
-	// 	days.Day2()
-	// 	timer.LogTime("Day 2")
-	// }()
-	//
-	// wg.Add(1)
-	// go func() {
-	// 	defer wg.Done()
-	// 	days.Day3()
-	// 	timer.LogTime("Day 3")
-	// }()
-	//
-	// wg.Add(1)
-	// go func() {
-	// 	defer wg.Done()
-	// 	days.Day4()
-	// 	timer.LogTime("Day 4")
-	// }()
+	startPoint := len(days) - 1
+	for i, dayFunc := range days {
+		if i < startPoint {
+			continue
+		}
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			dayFunc()
+			timer.LogTime(fmt.Sprintf("Day %d", i+1))
+		}()
 
-	// wg.Add(1)
-	// go func() {
-	// 	defer wg.Done()
-	// 	days.Day5()
-	// 	timer.LogTime("Day 5")
-	// }()
-
-	// wg.Add(1)
-	// go func() {
-	// 	defer wg.Done()
-	// 	days.Day6()
-	// 	timer.LogTime("Day 6")
-	// }()
-
-	// wg.Add(1)
-	// go func() {
-	// 	defer wg.Done()
-	// 	days.Day7()
-	// 	timer.LogTime("Day 7")
-	// }()
-
-	// wg.Add(1)
-	// go func() {
-	// 	defer wg.Done()
-	// 	days.Day8()
-	// 	timer.LogTime("Day 8")
-	// }()
-
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		days.Day9()
-		timer.LogTime("Day 9")
-	}()
+	}
 
 	wg.Wait()
 

@@ -12,7 +12,7 @@ import (
 var (
 	obstacle              = byte(35)
 	up, down, left, right = byte(94), byte(118), byte(60), byte(62)
-	directionMap          = map[byte]Direction{ // directions from day6
+	directionMap          = map[byte]Position{ // directions from day6
 		left:  directions[0],
 		right: directions[1],
 		up:    directions[2],
@@ -28,10 +28,10 @@ var (
 
 type GuardRoute struct {
 	Data        []string
-	ParadoxLoop []Direction
+	ParadoxLoop []Position
 	GuardMap    map[string]bool
 	Facing      byte
-	Position    Direction
+	Position    Position
 	ColLen      int
 	RowHeight   int
 }
@@ -41,7 +41,7 @@ func Day6() {
 	var guardRoute GuardRoute
 	guardRoute.Data = data
 	guardRoute.GuardMap = make(map[string]bool)
-	guardRoute.ParadoxLoop = []Direction{}
+	guardRoute.ParadoxLoop = []Position{}
 	initializeDay6(&guardRoute, data)
 
 	totalPositions := getGuardPositions(&guardRoute)

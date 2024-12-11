@@ -12,15 +12,15 @@ var nodeRegex = regexp.MustCompile(`\w`)
 
 func Day8() {
 	data, mapRowLen, mapColLen := getDay8Data()
-	uniqueNodes := []Direction{}
-	uniqueNodesExtended := []Direction{}
+	uniqueNodes := []Position{}
+	uniqueNodesExtended := []Position{}
 
 	for _, nodes := range data {
 		for i, node := range nodes {
 			for j := i; j < len(nodes)-1; j++ {
 				antiNodes := nodeToCheck(node, nodes[j+1], mapRowLen, mapColLen)
 				for _, antiNode := range antiNodes {
-					if !slices.ContainsFunc(uniqueNodes, func(dir Direction) bool {
+					if !slices.ContainsFunc(uniqueNodes, func(dir Position) bool {
 						return dir.Row == antiNode.Row && dir.Col == antiNode.Col
 					}) {
 						uniqueNodes = append(uniqueNodes, antiNode)
@@ -33,7 +33,7 @@ func Day8() {
 					mapColLen,
 				)
 				for _, antiNode := range antiNodesExtendedToAdd {
-					if !slices.ContainsFunc(uniqueNodesExtended, func(dir Direction) bool {
+					if !slices.ContainsFunc(uniqueNodesExtended, func(dir Position) bool {
 						return dir.Row == antiNode.Row && dir.Col == antiNode.Col
 					}) {
 						uniqueNodesExtended = append(uniqueNodesExtended, antiNode)
@@ -47,13 +47,13 @@ func Day8() {
 	log.Println(len(uniqueNodesExtended))
 }
 
-func nodeToCheckExtended(nodeA, nodeB Direction, rowLen, colLen int) []Direction {
-	dif := Direction{nodeA.Row - nodeB.Row, nodeA.Col - nodeB.Col}
-	results := []Direction{}
+func nodeToCheckExtended(nodeA, nodeB Position, rowLen, colLen int) []Position {
+	dif := Position{nodeA.Row - nodeB.Row, nodeA.Col - nodeB.Col}
+	results := []Position{}
 
 	i := 1
 	for {
-		toCheck := Direction{
+		toCheck := Position{
 			nodeA.Row + (i * dif.Row), nodeA.Col + i*(dif.Col),
 		}
 		if isInBounds(toCheck.Row, toCheck.Col, rowLen, colLen) {
@@ -66,7 +66,7 @@ func nodeToCheckExtended(nodeA, nodeB Direction, rowLen, colLen int) []Direction
 	j := 1
 
 	for {
-		toCheck := Direction{
+		toCheck := Position{
 			nodeB.Row - (j * dif.Row), nodeB.Col - j*(dif.Col),
 		}
 		if isInBounds(toCheck.Row, toCheck.Col, rowLen, colLen) {
@@ -82,13 +82,13 @@ func nodeToCheckExtended(nodeA, nodeB Direction, rowLen, colLen int) []Direction
 	return results
 }
 
-func nodeToCheck(nodeA, nodeB Direction, rowLen, colLen int) []Direction {
-	dif := Direction{nodeA.Row - nodeB.Row, nodeA.Col - nodeB.Col}
-	toCheck := []Direction{
+func nodeToCheck(nodeA, nodeB Position, rowLen, colLen int) []Position {
+	dif := Position{nodeA.Row - nodeB.Row, nodeA.Col - nodeB.Col}
+	toCheck := []Position{
 		{nodeA.Row + dif.Row, nodeA.Col + dif.Col},
 		{nodeB.Row - dif.Row, nodeB.Col - dif.Col},
 	}
-	results := []Direction{}
+	results := []Position{}
 	for _, node := range toCheck {
 		if isInBounds(node.Row, node.Col, rowLen, colLen) {
 			results = append(results, node)
@@ -97,14 +97,14 @@ func nodeToCheck(nodeA, nodeB Direction, rowLen, colLen int) []Direction {
 	return results
 }
 
-func getDay8Data() (map[byte][]Direction, int, int) {
+func getDay8Data() (map[byte][]Position, int, int) {
 	file, err := os.Open("inputs/input8.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	scanner := bufio.NewScanner(file)
-	results := make(map[byte][]Direction)
+	results := make(map[byte][]Position)
 	i := 0
 	mapColLen := 0
 	for scanner.Scan() {
@@ -114,7 +114,7 @@ func getDay8Data() (map[byte][]Direction, int, int) {
 		}
 		for j := 0; j < len(row); j++ {
 			if nodeRegex.Match([]byte{row[j]}) {
-				results[row[j]] = append(results[row[j]], Direction{i, j})
+				results[row[j]] = append(results[row[j]], Position{i, j})
 			}
 		}
 		i++

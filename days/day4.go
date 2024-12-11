@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-type Direction struct {
+type Position struct {
 	Row, Col int
 }
 
@@ -15,7 +15,7 @@ var (
 	mas        = []byte{M, A, S}
 	xmasFound  = 0
 	x_masFound = 0
-	directions = []Direction{
+	directions = []Position{
 		{0, -1},  // Left
 		{0, 1},   // Right
 		{-1, 0},  // Up
@@ -73,7 +73,7 @@ func isValidPattern(
 	colIndex int,
 	rowLen int,
 	colLen int,
-	direction Direction,
+	direction Position,
 ) {
 	for i := range mas {
 		newRow := rowIndex + direction.Row*(i+1)

@@ -15,8 +15,11 @@ func Day9() {
 	fileSystemCheckSum := calculateChecksum(compressedDisk)
 	fileSystemOptimizedCheckSum := calculateChecksum(compressedDiskOptimized)
 
-	log.Println(fileSystemCheckSum)
-	log.Println(fileSystemOptimizedCheckSum)
+	log.Printf(
+		"Completed disk compression resulted in checksum of %d. An deframented compression has a checksum of %d",
+		fileSystemCheckSum,
+		fileSystemOptimizedCheckSum,
+	)
 }
 
 func compressedDiskOptimized(diskMap []int) []int {

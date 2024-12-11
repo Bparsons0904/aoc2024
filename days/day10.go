@@ -78,7 +78,7 @@ func checkExpandedPath(
 			completedPaths = append(completedPaths, newCompletedPath)
 		}
 		if data[starting.Row][starting.Col]-data[pathToCheck.Row][pathToCheck.Col] == -1 {
-			if !pathToCheck.Contains(newPath) {
+			if !pathToCheck.IncludedIn(newPath) {
 				potentialMoves = append(potentialMoves, pathToCheck)
 			}
 		}
@@ -158,7 +158,7 @@ func checkPaths(
 	for _, move := range potentialMoves {
 		foundPaths := checkPaths(move, dataPosition, data, completedPaths)
 		for _, foundPath := range foundPaths {
-			if !foundPath.Contains(results) {
+			if !foundPath.IncludedIn(results) {
 				results = append(results, foundPath)
 			}
 		}
@@ -167,7 +167,7 @@ func checkPaths(
 	return results
 }
 
-func (position Position) Contains(positions []Position) bool {
+func (position Position) IncludedIn(positions []Position) bool {
 	return slices.ContainsFunc(positions, func(test Position) bool {
 		return test.Row == position.Row && test.Col == position.Col
 	})

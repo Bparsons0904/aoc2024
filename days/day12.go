@@ -159,7 +159,6 @@ func getPerimeter(plot Position, plotArea []Position) int {
 		for _, test := range plotArea {
 			if plot.Col == test.Col && plot.Row == test.Row+1 {
 				isRightAlso := false
-				// log.Println("plot", plot, test)
 				for _, test2 := range plotArea {
 					if test.Col+1 == test2.Col && test.Row == test2.Row {
 						isRightAlso = true

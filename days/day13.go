@@ -12,27 +12,62 @@ type Cord struct {
 	X, Y int
 }
 type ClawMachine struct {
-	A, B, Prize Cord
-	Coins       int
+	A, B, Prize, PrizeExtended Cord
+	Coins                      int
+	CoinsExtended              int64
 }
 
 var coordPattern = regexp.MustCompile(`([AB]|Prize): X=?([+-]?\d+), Y=?([+-]?\d+)`)
 
 func Day13() {
 	data := getDay13Data()
-	fewestTokens := calculateTokenCounts(data)
-	log.Printf("The total coins used for the most games played is %d", fewestTokens)
+	log.Println("Getitng data")
+	fewestTokens, fewestTokensExtend := calculateTokenCounts(data)
+	log.Printf(
+		"The total coins used for the most games played is %d and with values extended %d",
+		fewestTokens,
+		fewestTokensExtend,
+	)
 }
 
-func calculateTokenCounts(clawMachines []ClawMachine) int {
+func calculateTokenCounts(clawMachines []ClawMachine) (int, int64) {
 	result := 0
+	resultExtended := int64(0)
+
 	for _, clawMachine := range clawMachines {
-		// if i < 2 {
 		calculateOptions(&clawMachine)
 		result += clawMachine.Coins
-		// }
+		calculateOptionsExtended(&clawMachine)
+		resultExtended += clawMachine.CoinsExtended
 	}
-	return result
+	return result, resultExtended
+}
+
+func calculateOptionsExtended(clawMachine *ClawMachine) {
+	const UNIT_CONVERSION int64 = 10000000000000
+
+	aX := int64(clawMachine.A.X)
+	aY := int64(clawMachine.A.Y)
+	bX := int64(clawMachine.B.X)
+	bY := int64(clawMachine.B.Y)
+	xExpanded := int64(clawMachine.Prize.X) + UNIT_CONVERSION
+	yExpanded := int64(clawMachine.Prize.Y) + UNIT_CONVERSION
+
+	determinant := aX*bY - bX*aY
+	determiniant1 := xExpanded*bY - yExpanded*bX
+	determinant2 := yExpanded*aX - xExpanded*aY
+
+	if determiniant1%determinant != 0 || determinant2%determinant != 0 {
+		return
+	}
+
+	solution1 := determiniant1 / determinant
+	solution2 := determinant2 / determinant
+
+	if solution1 > 0 && solution2 > 0 {
+		tokens := 3*solution1 + solution2
+		clawMachine.CoinsExtended = tokens
+	}
 }
 
 func calculateOptions(clawMachine *ClawMachine) {

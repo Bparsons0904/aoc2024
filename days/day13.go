@@ -17,7 +17,7 @@ type ClawMachine struct {
 	CoinsExtended              int64
 }
 
-var coordPattern = regexp.MustCompile(`([AB]|Prize): X=?([+-]?\d+), Y=?([+-]?\d+)`)
+var clawPrizePattern = regexp.MustCompile(`([AB]|Prize): X=?([+-]?\d+), Y=?([+-]?\d+)`)
 
 func Day13() {
 	data := getDay13Data()
@@ -141,7 +141,7 @@ func getDay13Data() []ClawMachine {
 			continue
 		}
 
-		matches := coordPattern.FindStringSubmatch(line)
+		matches := clawPrizePattern.FindStringSubmatch(line)
 		if len(matches) == 4 {
 			x, err := strconv.Atoi(matches[2])
 			if err != nil {

@@ -12,8 +12,8 @@ var (
 	wall        = rune(35)
 	object      = rune(79)
 	robot       = rune(64)
-	leftObject  = rune('[')
-	rightObject = rune(']')
+	leftObject  = rune(91)
+	rightObject = rune(93)
 	Up          = Position{-1, 0}
 	Down        = Position{1, 0}
 	Right       = Position{0, 1}
@@ -46,154 +46,110 @@ func moveWarehouseRobotExpanded(warehouse *Warehouse) {
 	printWarehouseLayout(*warehouse, true)
 	for i, movement := range warehouse.Movements {
 		handleNextRobotMoveExpanded(warehouse, movement)
-		printWarehouseLayout(*warehouse, true)
-		if i > 6 {
-			break
+
+		base := 60
+		if i < base {
+			log.Println("Movement", movement, i)
+			switch movement {
+			case Up:
+				log.Println("Moving up")
+			case Down:
+				log.Println("Moving down")
+			case Left:
+				log.Println("Moving left")
+			case Right:
+				log.Println("Moving Right")
+			}
+			printWarehouseLayout(*warehouse, true)
 		}
+
 	}
+
+	printWarehouseLayout(*warehouse, true)
 }
 
 func handleNextRobotMoveExpanded(warehouse *Warehouse, movement Position) {
 	newPosition := warehouse.RobotPosition.GetNextMove(movement)
 	newSpace := warehouse.LayoutExpanded[newPosition]
-	log.Println("Next move", newPosition, movement, newSpace)
 	switch newSpace {
 	case space:
 		warehouse.LayoutExpanded[warehouse.RobotPosition] = space
 		warehouse.LayoutExpanded[newPosition] = robot
 		warehouse.RobotPosition = newPosition
 	case leftObject:
-		moveObjectExpanded(warehouse, newPosition, movement)
+		moveObjectExpanded(warehouse, newPosition, movement, true)
 	case rightObject:
-		moveObjectExpanded(warehouse, newPosition, movement)
+		moveObjectExpanded(warehouse, newPosition, movement, false)
 	}
 }
 
-func moveObjectExpanded(warehouse *Warehouse, newPosition, movement Position) {
+func moveObjectExpanded(warehouse *Warehouse, newPosition, movement Position, isLeft bool) {
 	switch movement {
-	case Down:
-		offset := 0
-		if warehouse.LayoutExpanded[newPosition] == rightObject {
-			offset = -1
-		}
-		leftTest := warehouse.LayoutExpanded[Position{newPosition.Row + 1, newPosition.Col + offset}]
-		rightTest := warehouse.LayoutExpanded[Position{newPosition.Row + 1, newPosition.Col + offset + 1}]
-		if leftTest == space && rightTest == space {
-			log.Println("in move down")
-			warehouse.LayoutExpanded[Position{newPosition.Row + 1, newPosition.Col + offset}] = leftObject
-			warehouse.LayoutExpanded[Position{newPosition.Row + 1, newPosition.Col + offset + 1}] = rightObject
-			warehouse.LayoutExpanded[Position{newPosition.Row, newPosition.Col + offset}] = space
-			warehouse.LayoutExpanded[Position{newPosition.Row, newPosition.Col + offset + 1}] = space
-			warehouse.LayoutExpanded[newPosition] = robot
-			warehouse.LayoutExpanded[warehouse.RobotPosition] = space
-			warehouse.RobotPosition = newPosition
-			break
-		}
-		foundSpaceIndex := -1
-		rowsChecked := 0
-		hasEmptySpace := false
-		for i := newPosition.Row + 1; i > warehouse.RowLen; i++ {
-			spacesFound := 0
-			wallFound := false
-			for j := newPosition.Col + offset - 1 - rowsChecked; j <= newPosition.Col+offset+2+rowsChecked; j++ {
-				testPosition := warehouse.LayoutExpanded[Position{i, j}]
-				if testPosition == wall {
-					wallFound = true
-					break
-				}
-				if testPosition == leftObject || testPosition == rightObject {
-					continue
-				}
-				spacesFound++
-			}
-			if wallFound {
-				break
-			}
-			rowsChecked++
-			foundSpaceIndex = i
-			if spacesFound == (rowsChecked*2)+2 {
-				hasEmptySpace = true
-				break
-			}
-
-		}
-
-		if foundSpaceIndex != -1 && hasEmptySpace {
-			for i := foundSpaceIndex; i <= newPosition.Row; i++ {
-				for j := newPosition.Col + offset - rowsChecked; j <= newPosition.Col+offset+1+rowsChecked; j++ {
-					swapPosition := Position{i, j}
-					warehouse.LayoutExpanded[swapPosition] = warehouse.LayoutExpanded[Position{swapPosition.Row - 1, swapPosition.Col}]
-					warehouse.LayoutExpanded[Position{swapPosition.Row - 1, swapPosition.Col}] = space
-				}
-			}
-			warehouse.RobotPosition = newPosition
-		}
-	case Up:
-		offset := 0
-		if warehouse.LayoutExpanded[newPosition] == rightObject {
-			offset = -1
-		}
-		leftTest := warehouse.LayoutExpanded[Position{newPosition.Row - 1, newPosition.Col + offset}]
-		rightTest := warehouse.LayoutExpanded[Position{newPosition.Row - 1, newPosition.Col + offset + 1}]
-		if leftTest == space && rightTest == space {
-			warehouse.LayoutExpanded[Position{newPosition.Row - 1, newPosition.Col + offset}] = leftObject
-			warehouse.LayoutExpanded[Position{newPosition.Row - 1, newPosition.Col + offset + 1}] = rightObject
-			warehouse.LayoutExpanded[Position{newPosition.Row, newPosition.Col + offset}] = space
-			warehouse.LayoutExpanded[Position{newPosition.Row, newPosition.Col + offset + 1}] = space
-			warehouse.LayoutExpanded[newPosition] = robot
-			warehouse.LayoutExpanded[warehouse.RobotPosition] = space
-			warehouse.RobotPosition = newPosition
-			break
-		}
-		foundSpaceIndex := -1
-		rowsChecked := 0
-		hasEmptySpace := false
-		for i := newPosition.Row - 1; i > 0; i-- {
-			spacesFound := 0
-			wallFound := false
-			for j := newPosition.Col + offset - 1 - rowsChecked; j <= newPosition.Col+offset+2+rowsChecked; j++ {
-				testPosition := warehouse.LayoutExpanded[Position{i, j}]
-				if testPosition == wall {
-					wallFound = true
-					break
-				}
-				if testPosition == leftObject || testPosition == rightObject {
-					continue
-				}
-				spacesFound++
-			}
-			if wallFound {
-				break
-			}
-			rowsChecked++
-			foundSpaceIndex = i
-			if spacesFound == (rowsChecked*2)+2 {
-				hasEmptySpace = true
-				break
-			}
-
-		}
-
-		if foundSpaceIndex != -1 && hasEmptySpace {
-			for i := foundSpaceIndex; i <= newPosition.Row; i++ {
-				for j := newPosition.Col + offset - rowsChecked; j <= newPosition.Col+offset+1+rowsChecked; j++ {
-					swapPosition := Position{i, j}
-					warehouse.LayoutExpanded[swapPosition] = warehouse.LayoutExpanded[Position{swapPosition.Row + 1, swapPosition.Col}]
-					warehouse.LayoutExpanded[Position{swapPosition.Row + 1, swapPosition.Col}] = space
-				}
-			}
-			warehouse.RobotPosition = newPosition
-		}
-
+	// case Down:
+	// 	offset := 0
+	// 	if warehouse.LayoutExpanded[newPosition] == rightObject {
+	// 		offset = -1
+	// 	}
+	// 	leftTest := warehouse.LayoutExpanded[Position{newPosition.Row + 1, newPosition.Col + offset}]
+	// 	rightTest := warehouse.LayoutExpanded[Position{newPosition.Row + 1, newPosition.Col + offset + 1}]
+	// 	if leftTest == space && rightTest == space {
+	// 		warehouse.LayoutExpanded[Position{newPosition.Row + 1, newPosition.Col + offset}] = leftObject
+	// 		warehouse.LayoutExpanded[Position{newPosition.Row + 1, newPosition.Col + offset + 1}] = rightObject
+	// 		warehouse.LayoutExpanded[Position{newPosition.Row, newPosition.Col + offset}] = space
+	// 		warehouse.LayoutExpanded[Position{newPosition.Row, newPosition.Col + offset + 1}] = space
+	// 		warehouse.LayoutExpanded[newPosition] = robot
+	// 		warehouse.LayoutExpanded[warehouse.RobotPosition] = space
+	// 		warehouse.RobotPosition = newPosition
+	// 		break
+	// 	}
+	// 	foundSpaceIndex := -1
+	// 	rowsChecked := 0
+	// 	hasEmptySpace := false
+	// 	for i := newPosition.Row + 1; i > warehouse.RowLen; i++ {
+	// 		spacesFound := 0
+	// 		wallFound := false
+	// 		for j := newPosition.Col + offset - 1 - rowsChecked; j <= newPosition.Col+offset+2+rowsChecked; j++ {
+	// 			testPosition := warehouse.LayoutExpanded[Position{i, j}]
+	// 			if testPosition == wall {
+	// 				wallFound = true
+	// 				break
+	// 			}
+	// 			if testPosition == leftObject || testPosition == rightObject {
+	// 				continue
+	// 			}
+	// 			spacesFound++
+	// 		}
+	// 		if wallFound {
+	// 			break
+	// 		}
+	// 		rowsChecked++
+	// 		foundSpaceIndex = i
+	// 		if spacesFound == (rowsChecked*2)+2 {
+	// 			hasEmptySpace = true
+	// 			break
+	// 		}
+	//
+	// 	}
+	//
+	// 	if foundSpaceIndex != -1 && hasEmptySpace {
+	// 		for i := foundSpaceIndex; i <= newPosition.Row; i++ {
+	// 			for j := newPosition.Col + offset - rowsChecked; j <= newPosition.Col+offset+1+rowsChecked; j++ {
+	// 				swapPosition := Position{i, j}
+	// 				warehouse.LayoutExpanded[swapPosition] = warehouse.LayoutExpanded[Position{swapPosition.Row - 1, swapPosition.Col}]
+	// 				warehouse.LayoutExpanded[Position{swapPosition.Row - 1, swapPosition.Col}] = space
+	// 			}
+	// 		}
+	// 		warehouse.RobotPosition = newPosition
+	// 	}
+	//
 	case Right:
-		for i := newPosition.Col + 1; i < warehouse.ColLen; i++ {
+		for i := newPosition.Col + 1; i < warehouse.ColLen*2; i++ {
 			testPosition := warehouse.LayoutExpanded[Position{newPosition.Row, i}]
 			if testPosition == wall {
 				break
 			}
 			if testPosition == space {
-				log.Println("Found a test positions")
-				for j := i; j > 0; j-- {
+				for j := i; j >= newPosition.Col; j-- {
 					warehouse.LayoutExpanded[Position{newPosition.Row, j}] = warehouse.LayoutExpanded[Position{newPosition.Row, j - 1}]
 				}
 				warehouse.LayoutExpanded[Position{newPosition.Row, newPosition.Col - 1}] = space
@@ -217,7 +173,111 @@ func moveObjectExpanded(warehouse *Warehouse, newPosition, movement Position) {
 				break
 			}
 		}
+
+	case Up:
+		offset := 0
+		if warehouse.LayoutExpanded[newPosition] == rightObject {
+			offset = -1
+		}
+
+		leftTest := Position{newPosition.Row - 1, newPosition.Col + offset}
+		updatedWarehouse, _ := swapVerticalPositions(*warehouse, leftTest, movement)
+		warehouse.LayoutExpanded = updatedWarehouse
+		if warehouse.LayoutExpanded[newPosition] == space {
+			warehouse.LayoutExpanded[newPosition] = robot
+			warehouse.LayoutExpanded[warehouse.RobotPosition] = space
+			warehouse.RobotPosition = newPosition
+		}
+
+	case Down:
+		offset := 0
+		if warehouse.LayoutExpanded[newPosition] == rightObject {
+			offset = -1
+		}
+
+		leftTest := Position{newPosition.Row + 1, newPosition.Col + offset}
+		updatedWarehouse, _ := swapVerticalPositions(*warehouse, leftTest, movement)
+		warehouse.LayoutExpanded = updatedWarehouse
+		if warehouse.LayoutExpanded[newPosition] == space {
+			warehouse.LayoutExpanded[newPosition] = robot
+			warehouse.LayoutExpanded[warehouse.RobotPosition] = space
+			warehouse.RobotPosition = newPosition
+		}
 	}
+}
+
+func swapVerticalPositions(
+	warehouse Warehouse,
+	leftPosition, movement Position,
+) (map[Position]rune, bool) {
+	rightPosition := Position{leftPosition.Row, leftPosition.Col + 1}
+	leftTestObject := warehouse.LayoutExpanded[leftPosition]
+	rightTestObject := warehouse.LayoutExpanded[rightPosition]
+
+	// Check for walls first
+	if leftTestObject == wall || rightTestObject == wall {
+		return warehouse.LayoutExpanded, false
+	}
+
+	// If we find empty spaces, perform the swap immediately
+	if leftTestObject == space && rightTestObject == space {
+		// Store the current box positions
+		prevLeftPos := Position{leftPosition.Row - movement.Row, leftPosition.Col}
+		prevRightPos := Position{rightPosition.Row - movement.Row, rightPosition.Col}
+
+		// Store current box values
+		currLeft := warehouse.LayoutExpanded[prevLeftPos]
+		currRight := warehouse.LayoutExpanded[prevRightPos]
+
+		// Only proceed if we're actually moving a box
+		if currLeft == leftObject && currRight == rightObject {
+			// Perform the swap
+			warehouse.LayoutExpanded[leftPosition] = currLeft
+			warehouse.LayoutExpanded[rightPosition] = currRight
+			warehouse.LayoutExpanded[prevLeftPos] = space
+			warehouse.LayoutExpanded[prevRightPos] = space
+			return warehouse.LayoutExpanded, true
+		}
+		return warehouse.LayoutExpanded, false
+	}
+
+	// If we find a box, look ahead one more position
+	if leftTestObject == leftObject && rightTestObject == rightObject {
+		nextPos := Position{leftPosition.Row + movement.Row, leftPosition.Col}
+		nextLayout, canMove := swapVerticalPositions(warehouse, nextPos, movement)
+		if canMove {
+			// If the box above/below could move, we should move this box too
+			warehouse.LayoutExpanded = nextLayout
+			// Now move our current box
+			currPos := Position{leftPosition.Row - movement.Row, leftPosition.Col}
+			nextLeftPos := Position{leftPosition.Row, leftPosition.Col}
+			nextRightPos := Position{leftPosition.Row, leftPosition.Col + 1}
+
+			// Perform the swap for our current box
+			warehouse.LayoutExpanded[nextLeftPos] = warehouse.LayoutExpanded[currPos]
+			warehouse.LayoutExpanded[nextRightPos] = warehouse.LayoutExpanded[Position{currPos.Row, currPos.Col + 1}]
+			warehouse.LayoutExpanded[currPos] = space
+			warehouse.LayoutExpanded[Position{currPos.Row, currPos.Col + 1}] = space
+			return warehouse.LayoutExpanded, true
+		}
+		return warehouse.LayoutExpanded, false
+	}
+
+	// Handle partial box overlap cases
+	if leftTestObject == rightTestObject {
+		// Try moving from the correct side of the box
+		newLeft := Position{leftPosition.Row, leftPosition.Col - 1}
+		if leftTestObject == rightObject {
+			newLeft = Position{leftPosition.Row, leftPosition.Col + 1}
+		}
+		return swapVerticalPositions(warehouse, newLeft, movement)
+	}
+
+	return warehouse.LayoutExpanded, false
+}
+
+func (position Position) checkVerticalMatch(comparable Position, layout map[Position]rune) bool {
+	return layout[position] == layout[comparable]
 }
 
 func calculateGPSCoordinates(warehouse Warehouse) int {
@@ -360,3 +420,55 @@ func getDay15Data() Warehouse {
 
 	return warehouse
 }
+
+// log.Println("Ewe checking left and righ", string(leftTest), string(rightTest))
+// if leftTest == space && rightTest == space {
+// 	log.Println("Getting into here")
+// 	warehouse.LayoutExpanded[Position{newPosition.Row - 1, newPosition.Col + offset}] = leftObject
+// 	warehouse.LayoutExpanded[Position{newPosition.Row - 1, newPosition.Col + offset + 1}] = rightObject
+// 	warehouse.LayoutExpanded[Position{newPosition.Row, newPosition.Col + offset}] = space
+// 	warehouse.LayoutExpanded[Position{newPosition.Row, newPosition.Col + offset + 1}] = space
+// 	warehouse.LayoutExpanded[newPosition] = robot
+// 	warehouse.LayoutExpanded[warehouse.RobotPosition] = space
+// 	warehouse.RobotPosition = newPosition
+// 	break
+// }
+// foundSpaceIndex := -1
+// rowsChecked := 0
+// hasEmptySpace := false
+// for i := newPosition.Row - 1; i > 0; i-- {
+// 	spacesFound := 0
+// 	wallFound := false
+// 	for j := newPosition.Col + offset - 1 - rowsChecked; j <= newPosition.Col+offset+2+rowsChecked; j++ {
+// 		testPosition := warehouse.LayoutExpanded[Position{i, j}]
+// 		if testPosition == wall {
+// 			wallFound = true
+// 			break
+// 		}
+// 		if testPosition == leftObject || testPosition == rightObject {
+// 			continue
+// 		}
+// 		spacesFound++
+// 	}
+// 	if wallFound {
+// 		break
+// 	}
+// 	rowsChecked++
+// 	foundSpaceIndex = i
+// 	if spacesFound == (rowsChecked*2)+2 {
+// 		hasEmptySpace = true
+// 		break
+// 	}
+//
+// }
+//
+// if foundSpaceIndex != -1 && hasEmptySpace {
+// 	for i := foundSpaceIndex; i <= newPosition.Row; i++ {
+// 		for j := newPosition.Col + offset - rowsChecked; j <= newPosition.Col+offset+1+rowsChecked; j++ {
+// 			swapPosition := Position{i, j}
+// 			warehouse.LayoutExpanded[swapPosition] = warehouse.LayoutExpanded[Position{swapPosition.Row + 1, swapPosition.Col}]
+// 			warehouse.LayoutExpanded[Position{swapPosition.Row + 1, swapPosition.Col}] = space
+// 		}
+// 	}
+// 	warehouse.RobotPosition = newPosition
+// }

@@ -15,7 +15,7 @@ var (
 	mas        = []byte{M, A, S}
 	xmasFound  = 0
 	x_masFound = 0
-	directions = []Position{
+	Directions = []Position{
 		{0, -1},  // Left
 		{0, 1},   // Right
 		{-1, 0},  // Up
@@ -62,7 +62,7 @@ func checkX_MAS(data []string, i, j int) {
 
 func checkXMAS(data []string, rowIndex, colIndex int) {
 	rowLen, colLen := len(data), len(data[0])
-	for _, direction := range directions {
+	for _, direction := range Directions {
 		isValidPattern(data, rowIndex, colIndex, rowLen, colLen, direction)
 	}
 }

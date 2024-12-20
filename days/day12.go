@@ -213,7 +213,7 @@ func findTouchingPlots(
 	group := []Position{position}
 	visited[position] = true
 
-	for _, dir := range directions[:4] {
+	for _, dir := range Directions[:4] {
 		nextPos := Position{position.Row + dir.Row, position.Col + dir.Col}
 		if !checkPositionInBounds(nextPos, Position{len(data), len(data[0])}) {
 			continue
@@ -228,7 +228,7 @@ func findTouchingPlots(
 func (position Position) TouchesAnotherPosition(positions []Position) int {
 	touches := 0
 	for _, test := range positions {
-		for _, direction := range directions[:4] {
+		for _, direction := range Directions[:4] {
 
 			positionCheck := test.Plus(direction)
 			if positionCheck == position {

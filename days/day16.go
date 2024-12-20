@@ -42,36 +42,31 @@ func Day16() {
 }
 
 func traverseMap(maze Maze) {
-	// Use a LIFO stack instead of a FIFO queue for depth-first exploration
 	toTraverse := []Maze{maze}
 	lowestCount := math.MaxInt
 
 	for len(toTraverse) > 0 {
-		// Take from end for LIFO behavior
 		idx := len(toTraverse) - 1
 		traversing := toTraverse[idx]
 		toTraverse = toTraverse[:idx]
 
-		// Check if we reached the end
 		if traversing.Map[traversing.Position] == end {
 			if traversing.Result < lowestCount {
 				lowestCount = traversing.Result
 				log.Printf("Found new lowest count: %d", lowestCount)
-				traversing.PrintState() // Print the successful path
+				traversing.PrintState()
 			}
 			continue
 		}
 
-		// Skip if current path is already worse than best found
 		if traversing.Result >= lowestCount {
 			continue
 		}
 
-		// Try moves in order: forward first, then turns
 		var moves []Position
 		switch traversing.Facing {
 		case Up:
-			moves = []Position{Up, Left, Right} // Forward, then turns
+			moves = []Position{Up, Left, Right}
 		case Down:
 			moves = []Position{Down, Left, Right}
 		case Left:
@@ -81,7 +76,6 @@ func traverseMap(maze Maze) {
 		}
 
 		possibleMoves := traversing.tryMove(moves)
-		// Add new moves to end of stack
 		toTraverse = append(toTraverse, possibleMoves...)
 	}
 
@@ -93,7 +87,6 @@ func traverseMap(maze Maze) {
 }
 
 func (maze Maze) PrintState() {
-	// Debug the full path first
 	log.Println("Path sequence:")
 	for i, step := range maze.Path {
 		log.Printf(
@@ -105,10 +98,8 @@ func (maze Maze) PrintState() {
 		)
 	}
 
-	// Create path visualization map
 	pathMap := make(map[Position]rune)
 	for i, step := range maze.Path {
-		// Get direction character
 		var dirChar rune
 		switch step.Facing {
 		case Up:
@@ -121,15 +112,12 @@ func (maze Maze) PrintState() {
 			dirChar = '>'
 		}
 
-		// Always show direction for each step
 		pathMap[step.Position] = dirChar
 
-		// Debug each placement
 		log.Printf("Adding to visualization: step %d at (%d,%d) char: %c",
 			i, step.Position.Row, step.Position.Col, dirChar)
 	}
 
-	// Print the maze
 	for row := 0; row < maze.RowLen; row++ {
 		line := ""
 		for col := 0; col < maze.ColLen; col++ {
@@ -143,7 +131,6 @@ func (maze Maze) PrintState() {
 		log.Println(line)
 	}
 
-	// Calculate and print movement stats
 	if len(maze.Path) > 1 {
 		forwardMoves := 0
 		turns := 0
@@ -167,7 +154,6 @@ func (maze *Maze) tryMove(moves []Position) []Maze {
 	for _, move := range moves {
 		nextPosition := maze.Position.GetNextPosition(move)
 
-		// Strict continuity check
 		rowDiff := abs(nextPosition.Row - maze.Position.Row)
 		colDiff := abs(nextPosition.Col - maze.Position.Col)
 		if rowDiff+colDiff != 1 {
@@ -199,7 +185,6 @@ func (maze *Maze) tryMove(moves []Position) []Maze {
 			log.Panicf("Error trying to copy struct, %v", maze)
 		}
 
-		// Update score based on movement type
 		oldScore := newMaze.Result
 		if move == maze.Facing {
 			newMaze.Result += 1
@@ -227,7 +212,6 @@ func abs(x int) int {
 	return x
 }
 
-// GetNextPosition calculates but does not move to the next position
 func (position Position) GetNextPosition(direction Position) Position {
 	return Position{
 		Row: position.Row + direction.Row,
@@ -235,7 +219,6 @@ func (position Position) GetNextPosition(direction Position) Position {
 	}
 }
 
-// IsWall checks if the given position is a wall
 func (position Position) IsWall(posMap PosMap) bool {
 	return posMap[position] == wall
 }

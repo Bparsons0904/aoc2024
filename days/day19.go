@@ -4,36 +4,41 @@ import (
 	"bufio"
 	"log"
 	"os"
-	"strconv"
 	"strings"
 )
 
 func Day19() {
-	data := getDay19Data()
-	log.Println(data)
+	designs, patterns := getDay19Data()
+	log.Println(designs, patterns)
 }
 
-func getDay19Data() []int {
+func getDay19Data() ([]string, []string) {
 	file, err := os.Open("inputs/test.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer file.Close()
 
-	results := []int{}
+	patterns := []string{}
+	designs := []string{}
 	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		stones := strings.Split(scanner.Text(), " ")
+	scanningDesigns := false
 
-		for _, stone := range stones {
-			num, err := strconv.Atoi(string(stone))
-			if err != nil {
-				log.Fatal(err)
-			}
-			results = append(results, num)
+	for scanner.Scan() {
+		row := scanner.Text()
+		if row == "" {
+			scanningDesigns = true
+			continue
 		}
+
+		if !scanningDesigns {
+			patterns = strings.Split(row, ", ")
+			continue
+		}
+
+		designs = append(designs, row)
 
 	}
 
-	return results
+	return designs, patterns
 }

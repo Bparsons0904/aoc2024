@@ -62,7 +62,7 @@ func checkExpandedPath(
 	newPath = append(newPath, starting)
 
 	pathsInBounds := []Position{}
-	for _, direction := range directions[:4] {
+	for _, direction := range Directions[:4] {
 		newPosition := starting.MoveTo(direction)
 		if checkPositionInBounds(newPosition, dataPosition) {
 			pathsInBounds = append(pathsInBounds, newPosition)
@@ -132,7 +132,7 @@ func checkPaths(
 	completedPaths []Position,
 ) []Position {
 	pathsInBounds := []Position{}
-	for _, direction := range directions[:4] {
+	for _, direction := range Directions[:4] {
 		newPosition := starting.MoveTo(direction)
 		if checkPositionInBounds(newPosition, dataPosition) {
 			pathsInBounds = append(pathsInBounds, newPosition)

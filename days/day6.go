@@ -13,10 +13,10 @@ var (
 	obstacle              = byte(35)
 	up, down, left, right = byte(94), byte(118), byte(60), byte(62)
 	directionMap          = map[byte]Position{ // directions from day6
-		left:  directions[0],
-		right: directions[1],
-		up:    directions[2],
-		down:  directions[3],
+		left:  Directions[0],
+		right: Directions[1],
+		up:    Directions[2],
+		down:  Directions[3],
 	}
 	directionSelectionMap = map[byte]byte{
 		up:    right,

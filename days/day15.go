@@ -405,13 +405,13 @@ func getDay15Data() Warehouse {
 			for _, direction := range row {
 				switch direction {
 				case 60: // Left
-					warehouse.Movements = append(warehouse.Movements, directions[0])
+					warehouse.Movements = append(warehouse.Movements, Directions[0])
 				case 62: // Right
-					warehouse.Movements = append(warehouse.Movements, directions[1])
+					warehouse.Movements = append(warehouse.Movements, Directions[1])
 				case 94: // Up
-					warehouse.Movements = append(warehouse.Movements, directions[2])
+					warehouse.Movements = append(warehouse.Movements, Directions[2])
 				case 118: // Down
-					warehouse.Movements = append(warehouse.Movements, directions[3])
+					warehouse.Movements = append(warehouse.Movements, Directions[3])
 				}
 			}
 		}

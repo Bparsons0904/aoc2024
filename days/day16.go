@@ -5,6 +5,7 @@ import (
 	"log"
 	"math"
 	"os"
+	"sort"
 
 	"github.com/jinzhu/copier"
 )
@@ -29,7 +30,7 @@ type Maze struct {
 	End      Position
 	Position Position
 	Facing   Position
-	Visited  map[PosKey]int
+	Visited  map[Position]bool
 	Result   int
 	Path     []PosKey
 }
@@ -37,116 +38,70 @@ type Maze struct {
 func Day16() {
 	maze := getDay16Data()
 
-	maze.PrintState()
+	// maze.PrintState()
 	traverseMap(maze)
 }
 
-func traverseMap(maze Maze) {
-	toTraverse := []Maze{maze}
-	lowestCount := math.MaxInt
-
-	for len(toTraverse) > 0 {
-		idx := len(toTraverse) - 1
-		traversing := toTraverse[idx]
-		toTraverse = toTraverse[:idx]
-
-		if traversing.Map[traversing.Position] == end {
-			if traversing.Result < lowestCount {
-				lowestCount = traversing.Result
-				log.Printf("Found new lowest count: %d", lowestCount)
-				traversing.PrintState()
-			}
-			continue
-		}
-
-		if traversing.Result >= lowestCount {
-			continue
-		}
-
-		var moves []Position
-		switch traversing.Facing {
-		case Up:
-			moves = []Position{Up, Left, Right}
-		case Down:
-			moves = []Position{Down, Left, Right}
-		case Left:
-			moves = []Position{Left, Up, Down}
-		case Right:
-			moves = []Position{Right, Up, Down}
-		}
-
-		possibleMoves := traversing.tryMove(moves)
-		toTraverse = append(toTraverse, possibleMoves...)
-	}
-
-	if lowestCount == math.MaxInt {
-		log.Println("No path found!")
-	} else {
-		log.Printf("Final lowest count: %d", lowestCount)
-	}
+type QueueItem struct {
+	Maze  Maze
+	Turns int
+	Cost  int
 }
 
-func (maze Maze) PrintState() {
-	log.Println("Path sequence:")
-	for i, step := range maze.Path {
-		log.Printf(
-			"%d: Position(%d,%d) Facing:%v",
-			i,
-			step.Position.Row,
-			step.Position.Col,
-			step.Facing,
-		)
-	}
+func traverseMap(maze Maze) {
+	queue := []QueueItem{{
+		Maze:  maze,
+		Turns: 0,
+		Cost:  maze.Result,
+	}}
+	lowestCount := math.MaxInt
+	pathsChecked := 0
 
-	pathMap := make(map[Position]rune)
-	for i, step := range maze.Path {
-		var dirChar rune
-		switch step.Facing {
-		case Up:
-			dirChar = '^'
-		case Down:
-			dirChar = 'v'
-		case Left:
-			dirChar = '<'
-		case Right:
-			dirChar = '>'
-		}
-
-		pathMap[step.Position] = dirChar
-
-		log.Printf("Adding to visualization: step %d at (%d,%d) char: %c",
-			i, step.Position.Row, step.Position.Col, dirChar)
-	}
-
-	for row := 0; row < maze.RowLen; row++ {
-		line := ""
-		for col := 0; col < maze.ColLen; col++ {
-			pos := Position{row, col}
-			if pathChar, exists := pathMap[pos]; exists {
-				line += string(pathChar)
-			} else {
-				line += string(maze.Map[pos])
+	for len(queue) > 0 {
+		sort.Slice(queue, func(i, j int) bool {
+			if queue[i].Turns == queue[j].Turns {
+				return queue[i].Cost < queue[j].Cost
 			}
-		}
-		log.Println(line)
-	}
+			return queue[i].Turns < queue[j].Turns
+		})
 
-	if len(maze.Path) > 1 {
-		forwardMoves := 0
-		turns := 0
-		for i := 1; i < len(maze.Path); i++ {
-			if maze.Path[i].Facing == maze.Path[i-1].Facing {
-				forwardMoves++
-			} else {
-				turns++
-			}
+		current := queue[0]
+		queue = queue[1:]
+		pathsChecked++
+
+		if current.Cost >= lowestCount {
+			continue
 		}
-		log.Printf("Stats: %d forwards (cost:%d) + %d turns (cost:%d) = total:%d",
-			forwardMoves, forwardMoves,
-			turns, turns*1000,
-			forwardMoves+(turns*1000))
+
+		if current.Maze.Map[current.Maze.Position] == end {
+			if current.Cost < lowestCount {
+				lowestCount = current.Cost
+			}
+			continue
+		}
+
+		moves := []Position{current.Maze.Facing}
+		if current.Maze.Facing.Row == 0 {
+			moves = append(moves, Up, Down)
+		} else {
+			moves = append(moves, Left, Right)
+		}
+
+		possibleMoves := current.Maze.tryMove(moves)
+		for _, newMaze := range possibleMoves {
+			newTurns := current.Turns
+			if newMaze.Facing != current.Maze.Facing {
+				newTurns++
+			}
+
+			queue = append(queue, QueueItem{
+				Maze:  newMaze,
+				Turns: newTurns,
+				Cost:  newMaze.Result,
+			})
+		}
 	}
-	log.Println("-------------------")
+	log.Printf("Final lowest count: %d after checking %d paths", lowestCount, pathsChecked)
 }
 
 func (maze *Maze) tryMove(moves []Position) []Maze {
@@ -154,28 +109,10 @@ func (maze *Maze) tryMove(moves []Position) []Maze {
 	for _, move := range moves {
 		nextPosition := maze.Position.GetNextPosition(move)
 
-		rowDiff := abs(nextPosition.Row - maze.Position.Row)
-		colDiff := abs(nextPosition.Col - maze.Position.Col)
-		if rowDiff+colDiff != 1 {
-			log.Printf("Skip discontinuous move from (%d,%d) to (%d,%d)",
-				maze.Position.Row, maze.Position.Col,
-				nextPosition.Row, nextPosition.Col)
-			continue
-		}
-
 		if nextPosition.IsWall(maze.Map) {
-			log.Printf("Skip wall at (%d,%d)", nextPosition.Row, nextPosition.Col)
 			continue
 		}
-
-		visitKey := PosKey{
-			Position: nextPosition,
-			Facing:   move,
-		}
-
-		if score, exists := maze.Visited[visitKey]; exists && score <= maze.Result {
-			log.Printf("Skip visited state at (%d,%d) facing %v with better score %d vs current %d",
-				nextPosition.Row, nextPosition.Col, move, score, maze.Result)
+		if _, exists := maze.Visited[nextPosition]; exists {
 			continue
 		}
 
@@ -185,19 +122,20 @@ func (maze *Maze) tryMove(moves []Position) []Maze {
 			log.Panicf("Error trying to copy struct, %v", maze)
 		}
 
-		oldScore := newMaze.Result
+		newPath := make([]PosKey, len(maze.Path))
+		copy(newPath, maze.Path)
+		newMaze.Path = newPath
+
 		if move == maze.Facing {
 			newMaze.Result += 1
-			log.Printf("Forward move: +1")
 		} else {
-			newMaze.Result += 1000
-			log.Printf("Turn: +1000")
+			newMaze.Result += 1001
 		}
-		log.Printf("Score changed: %d -> %d", oldScore, newMaze.Result)
 
-		newMaze.Visited[visitKey] = newMaze.Result
+		newMaze.Visited[nextPosition] = true
 		newMaze.Position = nextPosition
 		newMaze.Facing = move
+
 		newMaze.Path = append(newMaze.Path, PosKey{nextPosition, move})
 
 		possibleMoves = append(possibleMoves, newMaze)
@@ -213,10 +151,11 @@ func abs(x int) int {
 }
 
 func (position Position) GetNextPosition(direction Position) Position {
-	return Position{
+	newPosition := Position{
 		Row: position.Row + direction.Row,
 		Col: position.Col + direction.Col,
 	}
+	return newPosition
 }
 
 func (position Position) IsWall(posMap PosMap) bool {
@@ -228,23 +167,8 @@ func (position *Position) Move(direction Position) {
 	position.Col = position.Col + direction.Col
 }
 
-// func (position Position) IsWall(direction Position, posMap PosMap, rowLen, colLen int) bool {
-// 	newPos := Position{
-// 		Row: position.Row + direction.Row,
-// 		Col: position.Col + direction.Col,
-// 	}
-//
-// 	// Check boundaries first
-// 	if newPos.Row < 0 || newPos.Row >= rowLen ||
-// 		newPos.Col < 0 || newPos.Col >= colLen {
-// 		return true // Out of bounds is treated as a wall
-// 	}
-//
-// 	return posMap[newPos] == wall
-// }
-
 func getDay16Data() Maze {
-	file, err := os.Open("inputs/test2.txt")
+	file, err := os.Open("inputs/input16.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -252,7 +176,7 @@ func getDay16Data() Maze {
 
 	maze := Maze{
 		Map:     make(PosMap),
-		Visited: make(map[PosKey]int),
+		Visited: make(map[Position]bool),
 		RowLen:  0,
 		ColLen:  0,
 		Facing:  Right,
@@ -316,3 +240,64 @@ func getDay16Data() Maze {
 // 	toTraverse = append(toTraverse, newMaze)
 // 	break
 // }
+
+func (maze Maze) PrintState() {
+	for i, step := range maze.Path {
+		log.Printf(
+			"%d: Position(%d,%d) Facing:%v",
+			i,
+			step.Position.Row,
+			step.Position.Col,
+			step.Facing,
+		)
+	}
+
+	pathMap := make(map[Position]rune)
+	for i, step := range maze.Path {
+		var dirChar rune
+		switch step.Facing {
+		case Up:
+			dirChar = '^'
+		case Down:
+			dirChar = 'v'
+		case Left:
+			dirChar = '<'
+		case Right:
+			dirChar = '>'
+		}
+
+		pathMap[step.Position] = dirChar
+
+		log.Printf("Adding to visualization: step %d at (%d,%d) char: %c",
+			i, step.Position.Row, step.Position.Col, dirChar)
+	}
+
+	for row := 0; row < maze.RowLen; row++ {
+		line := ""
+		for col := 0; col < maze.ColLen; col++ {
+			pos := Position{row, col}
+			if pathChar, exists := pathMap[pos]; exists {
+				line += string(pathChar)
+			} else {
+				line += string(maze.Map[pos])
+			}
+		}
+		log.Println(line)
+	}
+
+	if len(maze.Path) > 1 {
+		forwardMoves := 0
+		turns := 0
+		for i := 1; i < len(maze.Path); i++ {
+			if maze.Path[i].Facing == maze.Path[i-1].Facing {
+				forwardMoves++
+			} else {
+				turns++
+			}
+		}
+		log.Printf("Stats: %d forwards (cost:%d) + %d turns (cost:%d) = total:%d",
+			forwardMoves, forwardMoves,
+			turns, turns*1000,
+			forwardMoves+(turns*1000))
+	}
+}

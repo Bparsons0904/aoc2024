@@ -20,9 +20,13 @@ type Memory struct {
 
 func Day18() {
 	memory := getDay18Data()
-	log.Println(memory.Map)
-	memorySpaces := calculateMemoryEscape(memory)
-	log.Println(memorySpaces)
+	memorySpaces := calculateMemoryEscape(memory, 1024)
+	blockingPosition := findBlockingPath(memory)
+	log.Printf(
+		"Shortest path out out of the memory %d with a last blocking position of %s",
+		memorySpaces,
+		blockingPosition,
+	)
 }
 
 type MemoryPath struct {
@@ -34,9 +38,43 @@ type PathState struct {
 	Distance int
 }
 
-func calculateMemoryEscape(baseMemory Memory) int {
+func findBlockingPath(baseMemory Memory) string {
+	low := 0
+	high := 12
+	lastFound := -1
+
+	for {
+		pathLength := calculateMemoryEscape(baseMemory, high)
+		if pathLength == math.MaxInt {
+			break
+		}
+		lastFound = high
+		high *= 2
+	}
+
+	for low <= high {
+		mid := low + (high-low)/2
+		pathLength := calculateMemoryEscape(baseMemory, mid)
+
+		if pathLength == math.MaxInt {
+			high = mid - 1
+		} else {
+			lastFound = mid
+			low = mid + 1
+		}
+	}
+
+	blockingPosition := baseMemory.Order[lastFound]
+	return fmt.Sprintf(
+		"Minimum blocking value: {%d,%d}",
+		blockingPosition.Col,
+		blockingPosition.Row,
+	)
+}
+
+func calculateMemoryEscape(baseMemory Memory, maxByteDrop int) int {
 	queue := []PathState{{Pos: Position{0, 0}, Distance: 0}}
-	visited := make(map[Position]int) // Position -> shortest distance
+	visited := make(map[Position]int)
 	visited[Position{0, 0}] = 0
 	shortestPath := math.MaxInt
 	endPosition := Position{baseMemory.RowLen, baseMemory.ColLen}
@@ -45,7 +83,6 @@ func calculateMemoryEscape(baseMemory Memory) int {
 		current := queue[0]
 		queue = queue[1:]
 
-		// If we found end position, update shortest path if needed
 		if current.Pos == endPosition {
 			if current.Distance < shortestPath {
 				shortestPath = current.Distance
@@ -53,29 +90,24 @@ func calculateMemoryEscape(baseMemory Memory) int {
 			continue
 		}
 
-		// Check all possible moves
 		for _, direction := range Directions[:4] {
 			newPos := Position{
 				Row: current.Pos.Row + direction.Row,
 				Col: current.Pos.Col + direction.Col,
 			}
 
-			// Skip if out of bounds
 			if !isInBounds(newPos.Row, newPos.Col, baseMemory.RowLen+1, baseMemory.ColLen+1) {
 				continue
 			}
 
-			// Skip if position is corrupted
-			if byteDrop, ok := baseMemory.Map[newPos]; ok && byteDrop < 1024 {
+			if byteDrop, ok := baseMemory.Map[newPos]; ok && byteDrop < maxByteDrop {
 				continue
 			}
 
-			// Skip if we've found a shorter path to this position already
 			if prevDist, exists := visited[newPos]; exists && current.Distance+1 >= prevDist {
 				continue
 			}
 
-			// Add new position to queue and update visited map
 			visited[newPos] = current.Distance + 1
 			queue = append(queue, PathState{
 				Pos:      newPos,
@@ -106,7 +138,7 @@ func getPossiblePaths(
 		}
 
 		byteDrop, ok := baseMemory.Map[newPath]
-		if ok && byteDrop < 1024 {
+		if ok && byteDrop < 12 {
 			continue
 		}
 
@@ -123,26 +155,26 @@ func getPossiblePaths(
 	return possiblePositions
 }
 
-func printMemoryVisualization(memory Memory, nanosecond int) {
-	result := ""
-	for i := 0; i <= memory.RowLen; i++ {
-		for j := 0; j <= memory.ColLen; j++ {
-			memoryPosition, ok := memory.Map[Position{i, j}]
-			if !ok {
-				result += string(space)
-				continue
-			}
-			if memoryPosition <= nanosecond {
-				result += "#"
-			} else {
-				result += string(space)
-			}
-		}
-		result += "\n"
-	}
-
-	fmt.Println(result)
-}
+// func printMemoryVisualization(memory Memory, nanosecond int) {
+// 	result := ""
+// 	for i := 0; i <= memory.RowLen; i++ {
+// 		for j := 0; j <= memory.ColLen; j++ {
+// 			memoryPosition, ok := memory.Map[Position{i, j}]
+// 			if !ok {
+// 				result += string(space)
+// 				continue
+// 			}
+// 			if memoryPosition <= nanosecond {
+// 				result += "#"
+// 			} else {
+// 				result += string(space)
+// 			}
+// 		}
+// 		result += "\n"
+// 	}
+//
+// 	fmt.Println(result)
+// }
 
 func getDay18Data() Memory {
 	file, err := os.Open("inputs/input18.txt")

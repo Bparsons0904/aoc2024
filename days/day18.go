@@ -6,7 +6,6 @@ import (
 	"log"
 	"math"
 	"os"
-	"slices"
 	"strconv"
 	"strings"
 )
@@ -124,36 +123,36 @@ func (memoryPath MemoryPath) GetNextPosition(direction Position) Position {
 	return Position{lastPosition.Row + direction.Row, lastPosition.Col + direction.Col}
 }
 
-func getPossiblePaths(
-	baseMemory Memory,
-	memory MemoryPath,
-	memoryLen int,
-) []Position {
-	possiblePositions := []Position{}
-	for _, direction := range Directions[:4] {
-		newPath := memory.GetNextPosition(direction)
-		inBounds := isInBounds(newPath.Row, newPath.Col, memoryLen+1, memoryLen+1)
-		if !inBounds {
-			continue
-		}
-
-		byteDrop, ok := baseMemory.Map[newPath]
-		if ok && byteDrop < 12 {
-			continue
-		}
-
-		if slices.ContainsFunc(memory.Path, func(prevPath Position) bool {
-			return prevPath.Equals(newPath)
-		}) {
-			continue
-		}
-
-		possiblePositions = append(possiblePositions, newPath)
-
-	}
-
-	return possiblePositions
-}
+// func getPossiblePaths(
+// 	baseMemory Memory,
+// 	memory MemoryPath,
+// 	memoryLen int,
+// ) []Position {
+// 	possiblePositions := []Position{}
+// 	for _, direction := range Directions[:4] {
+// 		newPath := memory.GetNextPosition(direction)
+// 		inBounds := isInBounds(newPath.Row, newPath.Col, memoryLen+1, memoryLen+1)
+// 		if !inBounds {
+// 			continue
+// 		}
+//
+// 		byteDrop, ok := baseMemory.Map[newPath]
+// 		if ok && byteDrop < 12 {
+// 			continue
+// 		}
+//
+// 		if slices.ContainsFunc(memory.Path, func(prevPath Position) bool {
+// 			return prevPath.Equals(newPath)
+// 		}) {
+// 			continue
+// 		}
+//
+// 		possiblePositions = append(possiblePositions, newPath)
+//
+// 	}
+//
+// 	return possiblePositions
+// }
 
 // func printMemoryVisualization(memory Memory, nanosecond int) {
 // 	result := ""

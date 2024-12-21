@@ -5,7 +5,6 @@ import (
 	"log"
 	"math"
 	"os"
-	"sort"
 
 	"github.com/jinzhu/copier"
 )
@@ -30,7 +29,6 @@ type Maze struct {
 	End      Position
 	Position Position
 	Facing   Position
-	Visited  map[Position]bool
 	Result   int
 	Path     []PosKey
 }
@@ -43,39 +41,36 @@ func Day16() {
 }
 
 type QueueItem struct {
-	Maze  Maze
-	Turns int
-	Cost  int
+	Maze Maze
+	Cost int
 }
 
 func traverseMap(maze Maze) {
 	queue := []QueueItem{{
-		Maze:  maze,
-		Turns: 0,
-		Cost:  maze.Result,
+		Maze: maze,
+		Cost: maze.Result,
 	}}
 	lowestCount := math.MaxInt
 	pathsChecked := 0
+	foundPaths := [][]PosKey{}
 
 	for len(queue) > 0 {
-		sort.Slice(queue, func(i, j int) bool {
-			if queue[i].Turns == queue[j].Turns {
-				return queue[i].Cost < queue[j].Cost
-			}
-			return queue[i].Turns < queue[j].Turns
-		})
-
 		current := queue[0]
 		queue = queue[1:]
 		pathsChecked++
 
-		if current.Cost >= lowestCount {
+		if current.Cost > lowestCount {
 			continue
 		}
 
 		if current.Maze.Map[current.Maze.Position] == end {
-			if current.Cost < lowestCount {
-				lowestCount = current.Cost
+			if current.Cost <= lowestCount {
+				if current.Cost < lowestCount {
+					lowestCount = current.Cost
+					foundPaths = [][]PosKey{current.Maze.Path}
+				} else {
+					foundPaths = append(foundPaths, current.Maze.Path)
+				}
 			}
 			continue
 		}
@@ -89,18 +84,14 @@ func traverseMap(maze Maze) {
 
 		possibleMoves := current.Maze.tryMove(moves)
 		for _, newMaze := range possibleMoves {
-			newTurns := current.Turns
-			if newMaze.Facing != current.Maze.Facing {
-				newTurns++
-			}
-
 			queue = append(queue, QueueItem{
-				Maze:  newMaze,
-				Turns: newTurns,
-				Cost:  newMaze.Result,
+				Maze: newMaze,
+				Cost: newMaze.Result,
 			})
 		}
 	}
+
+	log.Println("Found paths:", len(foundPaths))
 	log.Printf("Final lowest count: %d after checking %d paths", lowestCount, pathsChecked)
 }
 
@@ -108,11 +99,7 @@ func (maze *Maze) tryMove(moves []Position) []Maze {
 	var possibleMoves []Maze
 	for _, move := range moves {
 		nextPosition := maze.Position.GetNextPosition(move)
-
 		if nextPosition.IsWall(maze.Map) {
-			continue
-		}
-		if _, exists := maze.Visited[nextPosition]; exists {
 			continue
 		}
 
@@ -121,33 +108,20 @@ func (maze *Maze) tryMove(moves []Position) []Maze {
 		if err != nil {
 			log.Panicf("Error trying to copy struct, %v", maze)
 		}
-
 		newPath := make([]PosKey, len(maze.Path))
 		copy(newPath, maze.Path)
 		newMaze.Path = newPath
-
 		if move == maze.Facing {
 			newMaze.Result += 1
 		} else {
 			newMaze.Result += 1001
 		}
-
-		newMaze.Visited[nextPosition] = true
 		newMaze.Position = nextPosition
 		newMaze.Facing = move
-
 		newMaze.Path = append(newMaze.Path, PosKey{nextPosition, move})
-
 		possibleMoves = append(possibleMoves, newMaze)
 	}
 	return possibleMoves
-}
-
-func abs(x int) int {
-	if x < 0 {
-		return -x
-	}
-	return x
 }
 
 func (position Position) GetNextPosition(direction Position) Position {
@@ -168,20 +142,19 @@ func (position *Position) Move(direction Position) {
 }
 
 func getDay16Data() Maze {
-	file, err := os.Open("inputs/input16.txt")
+	file, err := os.Open("inputs/test2.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer file.Close()
 
 	maze := Maze{
-		Map:     make(PosMap),
-		Visited: make(map[Position]bool),
-		RowLen:  0,
-		ColLen:  0,
-		Facing:  Right,
-		Result:  0,
-		Path:    make([]PosKey, 0),
+		Map:    make(PosMap),
+		RowLen: 0,
+		ColLen: 0,
+		Facing: Right,
+		Result: 0,
+		Path:   make([]PosKey, 0),
 	}
 
 	scanner := bufio.NewScanner(file)
@@ -204,42 +177,6 @@ func getDay16Data() Maze {
 
 	return maze
 }
-
-// forwardPosition := traversing.Position.GetNextMove(Right)
-// if !forwardPosition.IsWall(Right, traversing.Map) &&
-// 	!traversing.Visited[forwardPosition] {
-// 	newMaze := Maze{}
-// 	copier.Copy(&newMaze, &traversing)
-// 	newMaze.Visited[forwardPosition] = true
-// 	newMaze.Result++
-// 	newMaze.Position.Move(Right)
-// 	toTraverse = append(toTraverse, newMaze)
-// }
-//
-// leftPosition := traversing.Position.GetNextMove(Up)
-// if !leftPosition.IsWall(Up, traversing.Map) &&
-// 	!traversing.Visited[leftPosition] {
-// 	newMaze := Maze{}
-// 	copier.Copy(&newMaze, &traversing)
-// 	newMaze.Visited[leftPosition] = true
-// 	newMaze.Result += 90
-// 	newMaze.Position.Move(Up)
-// 	newMaze.Facing = Up
-// 	toTraverse = append(toTraverse, newMaze)
-// }
-//
-// rightPosition := traversing.Position.GetNextMove(Down)
-// if !rightPosition.IsWall(Down, traversing.Map) &&
-// 	!traversing.Visited[rightPosition] {
-// 	newMaze := Maze{}
-// 	copier.Copy(&newMaze, &traversing)
-// 	newMaze.Visited[rightPosition] = true
-// 	newMaze.Result += 90
-// 	newMaze.Position.Move(Down)
-// 	newMaze.Facing = Down
-// 	toTraverse = append(toTraverse, newMaze)
-// 	break
-// }
 
 func (maze Maze) PrintState() {
 	for i, step := range maze.Path {

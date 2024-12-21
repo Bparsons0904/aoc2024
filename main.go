@@ -44,7 +44,7 @@ func main() {
 
 	var wg sync.WaitGroup
 
-	today := time.Now().Day() - 4
+	today := time.Now().Day() - 1
 	for i, dayFunc := range days {
 		if i != today {
 			continue

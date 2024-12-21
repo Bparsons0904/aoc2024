@@ -37,7 +37,8 @@ func Day16() {
 	maze := getDay16Data()
 
 	// maze.PrintState()
-	traverseMap(maze)
+	lowestCount, sharedPathLen := traverseMap(maze)
+	log.Printf("Final lowest count: %d with %d shared poisitions", lowestCount, sharedPathLen)
 }
 
 type QueueItem struct {
@@ -45,19 +46,17 @@ type QueueItem struct {
 	Cost int
 }
 
-func traverseMap(maze Maze) {
+func traverseMap(maze Maze) (int, int) {
 	queue := []QueueItem{{
 		Maze: maze,
 		Cost: maze.Result,
 	}}
 	lowestCount := math.MaxInt
-	pathsChecked := 0
 	foundPaths := [][]PosKey{}
 
 	for len(queue) > 0 {
 		current := queue[0]
 		queue = queue[1:]
-		pathsChecked++
 
 		if current.Cost > lowestCount {
 			continue
@@ -91,8 +90,14 @@ func traverseMap(maze Maze) {
 		}
 	}
 
-	log.Println("Found paths:", len(foundPaths))
-	log.Printf("Final lowest count: %d after checking %d paths", lowestCount, pathsChecked)
+	sharePositions := make(map[Position]bool)
+	for _, paths := range foundPaths {
+		for _, path := range paths {
+			sharePositions[path.Position] = true
+		}
+	}
+
+	return lowestCount, len(sharePositions)
 }
 
 func (maze *Maze) tryMove(moves []Position) []Maze {
